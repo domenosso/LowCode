@@ -53,14 +53,14 @@ AI:
 # 📦 Installation
 
 ```bash
-git clone https://github.com/yourname/lowcode.git
+git clone https://github.com/domenosso/LowCode.git
 
 cd lowcode
 
 pip install openai
 ```
 
-или просто скачай `lowcode.py`.
+или просто скачай `main.py`.
 
 ---
 
