@@ -129,21 +129,7 @@ LowCode имеет защиту:
 | read_base64   | прочитать бинарный файл |
 | message       | сообщение пользователю  |
 
----
 
-# 📸 Interface
-
-```
-LowCode
-
-📁 Repository: my_project
-🤖 Model: gpt-4
-🔑 API Key: sk-xxxx...
-
-Enter your AI request:
-```
-
----
 
 # 🛠 Example prompts
 
