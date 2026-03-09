@@ -153,7 +153,7 @@ LowCode имеет защиту:
 
 # 👨‍💻 Author
 
-**@req_dev**
+**@req_dev**(TELEGRAM)
 
 ---
 
