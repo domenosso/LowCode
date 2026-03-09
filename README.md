@@ -1,63 +1,182 @@
-🛸 LowCode v1.0
-LowCode — это интеллектуальный CLI-ассистент, превращающий LLM (через OnlySq API) в полноценного со-разработчика, который имеет прямой доступ к файловой системе вашего проекта.
+<p align="center">
+  <img src="https://i.ibb.co/jPJ5KPmk/header.png" alt="LowCode Header"/>
+</p>
 
-Ассистент умеет не только писать код, но и самостоятельно создавать структуру папок, читать файлы, выполнять команды в терминале и анализировать бинарные данные.
+<h1 align="center">LowCode</h1>
 
-✨ Основные возможности
-⚡ Автономное выполнение: AI сам решает, какие файлы нужно прочитать или изменить для выполнения вашей задачи.
+<p align="center">
+  <b>Onlysq-powered project assistant for managing files and code with natural language</b>
+</p>
 
-📂 Context-Aware: Скрипт автоматически сканирует дерево проекта и передает его в AI, чтобы модель понимала архитектуру «из коробки».
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.0-blue">
+  <img src="https://img.shields.io/badge/python-3.8+-yellow">
+  <img src="https://img.shields.io/badge/status-active-success">
+</p>
 
-🛠 Toolset:
+---
 
-read_file / edit_file — работа с исходным кодом.
+# ✨ About
 
-run_command — запуск тестов, сборка или установка зависимостей.
+**LowCode** — это CLI-утилита, которая позволяет управлять проектом с помощью AI.
 
-read_base64 — анализ изображений и ассетов (идеально для Vision-моделей).
+Ты просто пишешь запрос вроде:
 
-🛡 Safety First: Встроены проверки на выход за пределы директории проекта и блокировка деструктивных системных команд (rm -rf / и др.).
+> "Создай Flask API"
+> "Прочитай файл config.py"
+> "Добавь Dockerfile"
 
-🎨 Terminal UI: Интуитивно понятный интерфейс с цветовой индикацией действий (ANSI colors).
+AI:
 
-🚀 Быстрый старт
-Клонируйте репозиторий:
+* читает файлы
+* редактирует код
+* создает структуру проекта
+* запускает команды
+* анализирует репозиторий
 
-Bash
-git clone https://github.com/ваш-ник/lowcode.git
+и делает это **прямо внутри твоего проекта**.
+
+---
+
+# 🚀 Features
+
+* 📂 управление файлами проекта
+* 🧠 AI анализ кода
+* ⚡ выполнение shell команд
+* 🔒 sandbox внутри проекта
+* 🖥 удобный CLI интерфейс
+* 🎨 цветной вывод
+* 🧩 поддержка любых OpenAI-совместимых API
+
+---
+
+# 📦 Installation
+
+```bash
+git clone https://github.com/yourname/lowcode.git
+
 cd lowcode
-Запустите утилиту:
 
-Bash
+pip install openai
+```
+
+или просто скачай `lowcode.py`.
+
+---
+
+# ⚙ Usage
+
+Запуск:
+
+```bash
 python lowcode.py
-Настройка:
+```
 
-Введите ваш API ключ от my.onlysq.ru.
+Далее CLI попросит:
 
-Укажите ID модели (например, gpt-4-turbo или claude-3).
+```
+Введите API ключ
+Введите ID модели
+Введите путь к проекту
+```
 
-Укажите путь к вашему рабочему проекту.
+После этого можно писать команды AI.
 
-🛠 Технологический стек
-Language: Python 3
+---
 
-API: OpenAI SDK (совместимо с OnlySq)
+# 💬 Example
 
-Architecture: JSON-based Action Protocol
+```
+Enter your AI request:
 
-📸 Скриншоты (UI Style)
-🧩 Пример использования
-Запрос: "Создай структуру для нового проекта на Flask с папками static и templates, и напиши базовый app.py"
+Создай простой FastAPI сервер
+```
 
-Результат:
+AI может выполнить действия:
 
-[📁+] Created folder static/
+```
+[+] Created main.py
+[+] Created requirements.txt
+⚡ Running: pip install fastapi uvicorn
+```
 
-[📁+] Created folder templates/
+---
 
-[+] Created app.py (15 lines)
+# 🔐 Safety
 
-✅ Проект успешно инициализирован!
+LowCode имеет защиту:
 
-🤝 Контакты
-Разработано с ❤️ от [@req_dev]
+* запрет доступа **вне проекта**
+* блокировка опасных команд
+* sandbox shell execution
+* ограничение stdout
+* фильтр системных путей
+
+---
+
+# 🗂 Supported Actions
+
+| Action        | Description             |
+| ------------- | ----------------------- |
+| read_file     | прочитать файл          |
+| create_file   | создать файл            |
+| edit_file     | изменить файл           |
+| delete_file   | удалить файл            |
+| create_folder | создать папку           |
+| delete_folder | удалить папку           |
+| list_folder   | список файлов           |
+| run_command   | выполнить shell         |
+| read_base64   | прочитать бинарный файл |
+| message       | сообщение пользователю  |
+
+---
+
+# 📸 Interface
+
+```
+LowCode
+
+📁 Repository: my_project
+🤖 Model: gpt-4
+🔑 API Key: sk-xxxx...
+
+Enter your AI request:
+```
+
+---
+
+# 🛠 Example prompts
+
+```
+Создай REST API на FastAPI
+```
+
+```
+Добавь Dockerfile для проекта
+```
+
+```
+Оптимизируй структуру проекта
+```
+
+```
+Найди баги в коде
+```
+
+---
+
+# 👨‍💻 Author
+
+**@req_dev**
+
+---
+
+# ⭐ Support
+
+Если проект понравился:
+
+```
+⭐ Star the repository
+```
+
+
