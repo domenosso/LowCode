@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import os
 import sys
 import json
@@ -127,6 +130,39 @@ def print_logo_with_info(repo, model, api_key):
     print(f"  {CYAN}🔑 API Key:{RESET}    {WHITE}{masked_key}{RESET}")
     print()
     print(f"  {DIM}{'─' * 60}{RESET}")
+    print()
+
+
+def print_menu(repo, model, api_key):
+    clear_screen()
+    print_logo_with_info(repo, model, api_key)
+    print(f"  {BOLD}{WHITE}╔══════════════════════════════════╗{RESET}")
+    print(f"  {BOLD}{WHITE}║         {CYAN}MAIN MENU{WHITE}               ║{RESET}")
+    print(f"  {BOLD}{WHITE}╠══════════════════════════════════╣{RESET}")
+    print(f"  {BOLD}{WHITE}║  {YELLOW}[1]{WHITE} ⚙️  Settings                ║{RESET}")
+    print(f"  {BOLD}{WHITE}║  {GREEN}[2]{WHITE} 🤖 Request to AI           ║{RESET}")
+    print(f"  {BOLD}{WHITE}║  {RED}[3]{WHITE} 🚪 Exit                    ║{RESET}")
+    print(f"  {BOLD}{WHITE}╚══════════════════════════════════╝{RESET}")
+    print()
+
+
+def print_settings_menu(repo, model, api_key):
+    clear_screen()
+    print_logo_with_info(repo, model, api_key)
+    print(f"  {BOLD}{WHITE}╔══════════════════════════════════╗{RESET}")
+    print(f"  {BOLD}{WHITE}║         {CYAN}SETTINGS{WHITE}                ║{RESET}")
+    print(f"  {BOLD}{WHITE}╠══════════════════════════════════╣{RESET}")
+    print(f"  {BOLD}{WHITE}║                                  ║{RESET}")
+    print(f"  {BOLD}{WHITE}║  {DIM}Model ID:{RESET} {CYAN}{model}{RESET}")
+    print(f"  {BOLD}{WHITE}║  {DIM}API Key:{RESET}  {CYAN}{api_key[:8]}...{api_key[-4:] if len(api_key) > 12 else '***'}{RESET}")
+    print(f"  {BOLD}{WHITE}║  {DIM}Project:{RESET}  {CYAN}{repo}{RESET}")
+    print(f"  {BOLD}{WHITE}║                                  ║{RESET}")
+    print(f"  {BOLD}{WHITE}╠══════════════════════════════════╣{RESET}")
+    print(f"  {BOLD}{WHITE}║  {YELLOW}[1]{WHITE} 🤖 Set new AI model        ║{RESET}")
+    print(f"  {BOLD}{WHITE}║  {YELLOW}[2]{WHITE} 🔑 Set new API key         ║{RESET}")
+    print(f"  {BOLD}{WHITE}║  {YELLOW}[3]{WHITE} 📁 Set new project path    ║{RESET}")
+    print(f"  {BOLD}{WHITE}║  {GREEN}[4]{WHITE} 🔙 Back to menu            ║{RESET}")
+    print(f"  {BOLD}{WHITE}╚══════════════════════════════════╝{RESET}")
     print()
 
 
@@ -386,6 +422,269 @@ def parse_ai_response(response_text):
         return None
 
 
+def test_model(api_key, model_id):
+    try:
+        client = OpenAI(api_key=api_key, base_url="https://api.onlysq.ru/ai/openai/")
+        messages = [{"role": "user", "content": "Привет"}]
+
+        test_response = ""
+        r = client.chat.completions.create(
+            model=model_id,
+            messages=messages,
+            stream=True
+        )
+
+        for chunk in r:
+            if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+                test_response += chunk.choices[0].delta.content
+
+        if test_response:
+            return True, test_response
+        else:
+            return False, "Model returned empty response"
+
+    except Exception as e:
+        return False, str(e)
+
+
+def settings_menu(repo_path, model_id, api_key):
+    while True:
+        print_settings_menu(repo_path, model_id, api_key)
+        choice = input(f"  {WHITE}{BOLD}Enter number: {RESET}").strip()
+
+        if choice == "1":
+            clear_screen()
+            print_logo_with_info(repo_path, model_id, api_key)
+            print(f"  {DIM}Current model: {CYAN}{model_id}{RESET}")
+            print()
+            new_model = input(f"  {WHITE}Enter new model ID: {RESET}").strip()
+            if not new_model:
+                print(f"  {RED}Model ID cannot be empty!{RESET}")
+                input(f"\n  {DIM}Press Enter to continue...{RESET}")
+                continue
+
+            print()
+            print(f"  {YELLOW}Testing new model...{RESET}")
+            print()
+
+            success, response = test_model(api_key, new_model)
+            if success:
+                model_id = new_model
+                print(f"  {GREEN}[✓] Model works! Response: {response[:80]}...{RESET}")
+            else:
+                with open("error.txt", "w", encoding="utf-8") as f:
+                    f.write(response)
+                print(f"  {RED}[✗] Model error. Saved to error.txt{RESET}")
+
+            input(f"\n  {DIM}Press Enter to continue...{RESET}")
+
+        elif choice == "2":
+            clear_screen()
+            print_logo_with_info(repo_path, model_id, api_key)
+            masked = api_key[:8] + "..." + api_key[-4:] if len(api_key) > 12 else "***"
+            print(f"  {DIM}Current API key: {CYAN}{masked}{RESET}")
+            print()
+            new_key = input(f"  {WHITE}Enter new API key: {RESET}").strip()
+            if not new_key:
+                print(f"  {RED}API key cannot be empty!{RESET}")
+                input(f"\n  {DIM}Press Enter to continue...{RESET}")
+                continue
+
+            print()
+            print(f"  {YELLOW}Testing new API key...{RESET}")
+            print()
+
+            success, response = test_model(new_key, model_id)
+            if success:
+                api_key = new_key
+                print(f"  {GREEN}[✓] API key works!{RESET}")
+            else:
+                with open("error.txt", "w", encoding="utf-8") as f:
+                    f.write(response)
+                print(f"  {RED}[✗] API key error. Saved to error.txt{RESET}")
+
+            input(f"\n  {DIM}Press Enter to continue...{RESET}")
+
+        elif choice == "3":
+            clear_screen()
+            print_logo_with_info(repo_path, model_id, api_key)
+            print(f"  {DIM}Current path: {CYAN}{repo_path}{RESET}")
+            print()
+            new_path = input(f"  {WHITE}Enter new project path: {RESET}").strip()
+            if not new_path:
+                print(f"  {RED}Path cannot be empty!{RESET}")
+                input(f"\n  {DIM}Press Enter to continue...{RESET}")
+                continue
+
+            new_path = os.path.realpath(os.path.expanduser(new_path))
+
+            if not os.path.isdir(new_path):
+                print(f"  {YELLOW}Folder not found, creating: {new_path}{RESET}")
+                os.makedirs(new_path, exist_ok=True)
+
+            repo_path = new_path
+            os.chdir(repo_path)
+            print(f"  {GREEN}[✓] Project path changed to: {repo_path}{RESET}")
+            input(f"\n  {DIM}Press Enter to continue...{RESET}")
+
+        elif choice == "4":
+            return repo_path, model_id, api_key
+
+        else:
+            print(f"  {RED}Invalid choice!{RESET}")
+            input(f"\n  {DIM}Press Enter to continue...{RESET}")
+
+
+def ai_request(repo_path, model_id, api_key, conversation):
+    clear_screen()
+    print_logo_with_info(repo_path, model_id, api_key)
+
+    user_input = input(f"  {GREEN}{BOLD}Enter your AI request: {RESET}").strip()
+
+    if not user_input:
+        return conversation
+
+    if user_input.lower() in ['exit', 'quit', 'выход', 'back', 'назад']:
+        return conversation
+
+    project_tree = []
+    try:
+        for root, dirs, files in os.walk(repo_path):
+            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '__pycache__', 'venv', '.git']]
+            level = root.replace(repo_path, '').count(os.sep)
+            indent = '  ' * level
+            folder_name = os.path.basename(root)
+            project_tree.append(f"{indent}📁 {folder_name}/")
+            sub_indent = '  ' * (level + 1)
+            for file in files[:50]:
+                file_path = os.path.join(root, file)
+                try:
+                    size = os.path.getsize(file_path)
+                except:
+                    size = 0
+                project_tree.append(f"{sub_indent}📄 {file} ({size}b)")
+            if len(files) > 50:
+                project_tree.append(f"{sub_indent}... and {len(files) - 50} more files")
+    except Exception:
+        project_tree = ["(unable to read project structure)"]
+
+    tree_str = '\n'.join(project_tree[:200])
+
+    enhanced_prompt = f"""User request: {user_input}
+
+Current project structure:
+{tree_str}
+
+Remember: respond ONLY with valid JSON. All paths must be relative to the project root."""
+
+    conversation.append({"role": "user", "content": enhanced_prompt})
+
+    print()
+    print(f"  {YELLOW}⏳ Thinking...{RESET}")
+    print()
+
+    try:
+        client = OpenAI(api_key=api_key, base_url="https://api.onlysq.ru/ai/openai/")
+
+        full_response = ""
+        r = client.chat.completions.create(
+            model=model_id,
+            messages=conversation,
+            stream=True
+        )
+
+        for chunk in r:
+            if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+                full_response += chunk.choices[0].delta.content
+
+        if not full_response.strip():
+            print(f"  {RED}[✗] AI returned empty response{RESET}")
+            conversation.pop()
+            input(f"\n  {DIM}Press Enter to continue...{RESET}")
+            return conversation
+
+        parsed = parse_ai_response(full_response)
+
+        if parsed is None:
+            print(f"  {RED}[✗] Failed to parse AI response as JSON{RESET}")
+            print(f"  {DIM}Raw response:{RESET}")
+            print(f"  {DIM}{full_response[:500]}{RESET}")
+            conversation.append({"role": "assistant", "content": full_response})
+            conversation.append({"role": "user", "content": "Your response was not valid JSON. Please respond ONLY with a valid JSON object as specified in the system prompt."})
+            input(f"\n  {DIM}Press Enter to continue...{RESET}")
+            return conversation
+
+        thinking = parsed.get("thinking", "")
+        if thinking:
+            print(f"  {DIM}💭 {thinking}{RESET}")
+            print()
+
+        actions = parsed.get("actions", [])
+        if actions:
+            print(f"  {BOLD}Executing {len(actions)} action(s):{RESET}")
+            print()
+            action_results = execute_actions(actions, repo_path)
+        else:
+            action_results = []
+
+        summary = parsed.get("summary", "")
+        if summary:
+            print()
+            print(f"  {GREEN}{BOLD}✅ {summary}{RESET}")
+
+        conversation.append({"role": "assistant", "content": full_response})
+
+        read_results = [r for r in action_results if r.get("content") or r.get("base64") or r.get("items") or r.get("stdout")]
+        if read_results:
+            feedback = f"Action results:\n{json.dumps(read_results, ensure_ascii=False, indent=2)[:8000]}"
+            conversation.append({"role": "user", "content": feedback + "\n\nIf you need to take more actions based on these results, respond with JSON. If everything is done, respond with a JSON containing just a message action."})
+
+            print()
+            print(f"  {YELLOW}⏳ Processing results...{RESET}")
+
+            full_response2 = ""
+            r2 = client.chat.completions.create(
+                model=model_id,
+                messages=conversation,
+                stream=True
+            )
+            for chunk in r2:
+                if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+                    full_response2 += chunk.choices[0].delta.content
+
+            if full_response2.strip():
+                parsed2 = parse_ai_response(full_response2)
+                if parsed2:
+                    actions2 = parsed2.get("actions", [])
+                    if actions2:
+                        print()
+                        print(f"  {BOLD}Executing {len(actions2)} follow-up action(s):{RESET}")
+                        print()
+                        execute_actions(actions2, repo_path)
+
+                    summary2 = parsed2.get("summary", "")
+                    if summary2:
+                        print()
+                        print(f"  {GREEN}{BOLD}✅ {summary2}{RESET}")
+
+                conversation.append({"role": "assistant", "content": full_response2})
+
+    except KeyboardInterrupt:
+        print(f"\n  {YELLOW}Interrupted{RESET}")
+    except Exception as e:
+        print(f"  {RED}[✗] Error: {str(e)}{RESET}")
+        with open("error.txt", "w", encoding="utf-8") as f:
+            f.write(str(e))
+        print(f"  {RED}Error saved to error.txt{RESET}")
+
+    if len(conversation) > 30:
+        conversation = [conversation[0]] + conversation[-20:]
+
+    print()
+    input(f"  {DIM}Press Enter to continue...{RESET}")
+    return conversation
+
+
 def main():
     clear_screen()
     print_logo()
@@ -407,36 +706,14 @@ def main():
         print(f"  {YELLOW}Проверяем работоспособность модели с вашим ключом...{RESET}")
         print()
 
-        try:
-            client = OpenAI(api_key=api_key, base_url="https://api.onlysq.ru/ai/openai/")
-            messages = [{"role": "user", "content": "Привет"}]
-
-            test_response = ""
-            r = client.chat.completions.create(
-                model=model_id,
-                messages=messages,
-                stream=True
-            )
-
-            for chunk in r:
-                if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
-                    test_response += chunk.choices[0].delta.content
-
-            if test_response:
-                print(f"  {GREEN}[✓] Модель работает! Ответ: {test_response[:80]}...{RESET}")
-                print()
-                break
-            else:
-                print(f"  {RED}[✗] Модель вернула пустой ответ.{RESET}")
-                with open("error.txt", "w", encoding="utf-8") as f:
-                    f.write("Model returned empty response")
-                print(f"  {RED}Ошибка модели. Текст ошибки сохранен в файл error.txt{RESET}")
-                print()
-
-        except Exception as e:
-            error_text = str(e)
+        success, response = test_model(api_key, model_id)
+        if success:
+            print(f"  {GREEN}[✓] Модель работает! Ответ: {response[:80]}...{RESET}")
+            print()
+            break
+        else:
             with open("error.txt", "w", encoding="utf-8") as f:
-                f.write(error_text)
+                f.write(response)
             print(f"  {RED}Ошибка модели. Текст ошибки сохранен в файл error.txt{RESET}")
             print()
 
@@ -458,153 +735,23 @@ def main():
     ]
 
     while True:
-        clear_screen()
-        print_logo_with_info(repo_path, model_id, api_key)
+        print_menu(repo_path, model_id, api_key)
+        choice = input(f"  {WHITE}{BOLD}Enter number: {RESET}").strip()
 
-        user_input = input(f"  {GREEN}{BOLD}Enter your AI request: {RESET}").strip()
+        if choice == "1":
+            repo_path, model_id, api_key = settings_menu(repo_path, model_id, api_key)
+            conversation[0] = {"role": "system", "content": SYSTEM_PROMPT + f"\n\nProject root directory: {repo_path}\nAll file paths are relative to this directory."}
 
-        if not user_input:
-            continue
+        elif choice == "2":
+            conversation = ai_request(repo_path, model_id, api_key, conversation)
 
-        if user_input.lower() in ['exit', 'quit', 'выход']:
+        elif choice == "3":
             print(f"\n  {BLUE}До свидания! 👋{RESET}\n")
             break
 
-        project_tree = []
-        try:
-            for root, dirs, files in os.walk(repo_path):
-                dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '__pycache__', 'venv', '.git']]
-                level = root.replace(repo_path, '').count(os.sep)
-                indent = '  ' * level
-                folder_name = os.path.basename(root)
-                project_tree.append(f"{indent}📁 {folder_name}/")
-                sub_indent = '  ' * (level + 1)
-                for file in files[:50]:
-                    file_path = os.path.join(root, file)
-                    try:
-                        size = os.path.getsize(file_path)
-                    except:
-                        size = 0
-                    project_tree.append(f"{sub_indent}📄 {file} ({size}b)")
-                if len(files) > 50:
-                    project_tree.append(f"{sub_indent}... and {len(files) - 50} more files")
-        except Exception:
-            project_tree = ["(unable to read project structure)"]
-
-        tree_str = '\n'.join(project_tree[:200])
-
-        enhanced_prompt = f"""User request: {user_input}
-
-Current project structure:
-{tree_str}
-
-Remember: respond ONLY with valid JSON. All paths must be relative to the project root."""
-
-        conversation.append({"role": "user", "content": enhanced_prompt})
-
-        print()
-        print(f"  {YELLOW}⏳ Thinking...{RESET}")
-        print()
-
-        try:
-            client = OpenAI(api_key=api_key, base_url="https://api.onlysq.ru/ai/openai/")
-
-            full_response = ""
-            r = client.chat.completions.create(
-                model=model_id,
-                messages=conversation,
-                stream=True
-            )
-
-            for chunk in r:
-                if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
-                    full_response += chunk.choices[0].delta.content
-
-            if not full_response.strip():
-                print(f"  {RED}[✗] AI returned empty response{RESET}")
-                conversation.pop()
-                input(f"\n  {DIM}Press Enter to continue...{RESET}")
-                continue
-
-            parsed = parse_ai_response(full_response)
-
-            if parsed is None:
-                print(f"  {RED}[✗] Failed to parse AI response as JSON{RESET}")
-                print(f"  {DIM}Raw response:{RESET}")
-                print(f"  {DIM}{full_response[:500]}{RESET}")
-                conversation.append({"role": "assistant", "content": full_response})
-                conversation.append({"role": "user", "content": "Your response was not valid JSON. Please respond ONLY with a valid JSON object as specified in the system prompt."})
-                input(f"\n  {DIM}Press Enter to continue...{RESET}")
-                continue
-
-            thinking = parsed.get("thinking", "")
-            if thinking:
-                print(f"  {DIM}💭 {thinking}{RESET}")
-                print()
-
-            actions = parsed.get("actions", [])
-            if actions:
-                print(f"  {BOLD}Executing {len(actions)} action(s):{RESET}")
-                print()
-                action_results = execute_actions(actions, repo_path)
-            else:
-                action_results = []
-
-            summary = parsed.get("summary", "")
-            if summary:
-                print()
-                print(f"  {GREEN}{BOLD}✅ {summary}{RESET}")
-
-            conversation.append({"role": "assistant", "content": full_response})
-
-            read_results = [r for r in action_results if r.get("content") or r.get("base64") or r.get("items") or r.get("stdout")]
-            if read_results:
-                feedback = f"Action results:\n{json.dumps(read_results, ensure_ascii=False, indent=2)[:8000]}"
-                conversation.append({"role": "user", "content": feedback + "\n\nIf you need to take more actions based on these results, respond with JSON. If everything is done, respond with a JSON containing just a message action."})
-
-                print()
-                print(f"  {YELLOW}⏳ Processing results...{RESET}")
-
-                full_response2 = ""
-                r2 = client.chat.completions.create(
-                    model=model_id,
-                    messages=conversation,
-                    stream=True
-                )
-                for chunk in r2:
-                    if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
-                        full_response2 += chunk.choices[0].delta.content
-
-                if full_response2.strip():
-                    parsed2 = parse_ai_response(full_response2)
-                    if parsed2:
-                        actions2 = parsed2.get("actions", [])
-                        if actions2:
-                            print()
-                            print(f"  {BOLD}Executing {len(actions2)} follow-up action(s):{RESET}")
-                            print()
-                            execute_actions(actions2, repo_path)
-
-                        summary2 = parsed2.get("summary", "")
-                        if summary2:
-                            print()
-                            print(f"  {GREEN}{BOLD}✅ {summary2}{RESET}")
-
-                    conversation.append({"role": "assistant", "content": full_response2})
-
-        except KeyboardInterrupt:
-            print(f"\n  {YELLOW}Прервано пользователем{RESET}")
-        except Exception as e:
-            print(f"  {RED}[✗] Error: {str(e)}{RESET}")
-            with open("error.txt", "w", encoding="utf-8") as f:
-                f.write(str(e))
-            print(f"  {RED}Текст ошибки сохранен в error.txt{RESET}")
-
-        if len(conversation) > 30:
-            conversation = [conversation[0]] + conversation[-20:]
-
-        print()
-        input(f"  {DIM}Press Enter to continue...{RESET}")
+        else:
+            print(f"  {RED}Invalid choice!{RESET}")
+            input(f"\n  {DIM}Press Enter to continue...{RESET}")
 
 
 if __name__ == "__main__":
